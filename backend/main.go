@@ -11,10 +11,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type User struct {
-	Id 		int 	`json:"id"`
-	Name 	string 	`json:"name"`
-	Email 	string 	`json:"email"`
+type Task struct {
+	Id 			int 	`json:"id"`
+	Name 		string 	`json:"name"`
+	Description	string 	`json:"description"`
+	Status 		string 	`json:"status"`
+	Priority 	string 	`json:"priority"`
+	DueDate 	string 	`json:"dueDate"`
 }
 
 // main function
@@ -26,19 +29,19 @@ func main() {
 	}
 	defer db.Close()
 
-	// create table if not exists
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name TEXT, email TEXT)")
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS tasks (id SERIAL PRIMARY KEY, name TEXT, description TEXT, status TEXT, priority TEXT, dueDate TIMESTAMP not null)")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// create router
+	
 	router := mux.NewRouter()
-	router.HandleFunc("/api/go/users", getUsers(db)).Methods("GET")
-	router.HandleFunc("/api/go/users", createUser(db)).Methods("POST")
-	router.HandleFunc("/api/go/users/{id}", getUser(db)).Methods("GET")
-	router.HandleFunc("/api/go/users/{id}", updateUser(db)).Methods("PUT")
-	router.HandleFunc("/api/go/users/{id}", deleteUser(db)).Methods("DELETE")
+
+	// TASKS
+	router.HandleFunc("/api/go/tasks", getTasks(db)).Methods("GET")
+	router.HandleFunc("/api/go/tasks", createTask(db)).Methods("POST")
+	router.HandleFunc("/api/go/tasks/{id}", getTask(db)).Methods("GET")
+	router.HandleFunc("/api/go/tasks/{id}", updateTask(db)).Methods("PUT")
+	router.HandleFunc("/api/go/tasks/{id}", deleteTask(db)).Methods("DELETE")
 
 	// wrap the router with CORS and JSON content type middlewares
 	enhancedRouter := enableCORS(jsonContentTypeMiddleware(router))
@@ -73,108 +76,104 @@ func jsonContentTypeMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// get all users
-func getUsers(db *sql.DB) http.HandlerFunc {
+func getTasks(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rows, err := db.Query("SELECT * FROM users ")
+		rows, err := db.Query("SELECT * FROM tasks")
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer rows.Close()
 
-		users := []User{}
+		tasks := []Task{}
 		for rows.Next() {
-			var u User
-			if err := rows.Scan(&u.Id, &u.Name, &u.Email); err != nil {
+			var t Task
+			if err := rows.Scan(&t.Id, &t.Name, &t.Description, &t.Status, &t.Priority, &t.DueDate); err != nil {
 				log.Fatal(err)
 			}
-			users = append(users, u)
+			tasks = append(tasks, t)
 		}
 
 		if err := rows.Err(); err != nil {
 			log.Fatal(err)
 		}
 
-		json.NewEncoder(w).Encode(users)
+		json.NewEncoder(w).Encode(tasks)
 	}
 }
 
-// get user by id
-func getUser(db *sql.DB) http.HandlerFunc {
+func createTask(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var t Task
+		json.NewDecoder(r.Body).Decode(&t)
+
+		err := db.QueryRow("INSERT INTO tasks (name, description, status, priority, dueDate) VALUES ($1, $2, $3, $4, $5) RETURNING id", t.Name, t.Description, t.Status, t.Priority, t.DueDate).Scan(&t.Id)
+		
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		json.NewEncoder(w).Encode(t)
+	}
+}
+
+func getTask(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id := vars["id"]
 
-		var u User
-		err := db.QueryRow("SELECT * FROM users WHERE id = $1", id).Scan(&u.Id, &u.Name, &u.Email)
+		var t Task
+		err := db.QueryRow("SELECT * FROM tasks WHERE id = $1", id).Scan(&t.Id, &t.Name, &t.Description, &t.Status, &t.Priority, &t.DueDate)
 
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 
-		json.NewEncoder(w).Encode(u)
+		json.NewEncoder(w).Encode(t)
 	}
 }
 
-// create user
-func createUser(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var u User
-		json.NewDecoder(r.Body).Decode(&u)
-
-		err := db.QueryRow("INSERT INTO users (name, email) VALUES ($1, $2) RETURNING id", u.Name, u.Email).Scan(&u.Id)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		json.NewEncoder(w).Encode(u)
-	}
-}
-
-// update user
-func updateUser(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var u User
-		json.NewDecoder(r.Body).Decode(&u)
-
-		vars := mux.Vars(r)
-		id := vars["id"]
-
-		_, err := db.Exec("UPDATE users SET name = $1, email = $2 WHERE id = $3", u.Name, u.Email, id)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		var updatedUser User
-		err = db.QueryRow("SELECT id, name, email FROM users WHERE id = $1", id).Scan(&updatedUser.Id, &updatedUser.Name, &updatedUser.Email)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		json.NewEncoder(w).Encode(updatedUser)
-	}
-}
-
-// delete user
-func deleteUser(db *sql.DB) http.HandlerFunc {
+func deleteTask(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		id := vars["id"]
 
-		var u User
-		err := db.QueryRow("SELECT * FROM users WHERE id = $1", id).Scan(&u.Id, &u.Name, &u.Email)
+		var t Task
+		err := db.QueryRow("SELECT * FROM tasks WHERE id = $1", id).Scan(&t.Id, &t.Name, &t.Description, &t.Status, &t.Priority, &t.DueDate)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		} else {
-			_, err := db.Exec("DELETE FROM users WHERE id = $1", id)
+			_, err := db.Exec("DELETE FROM tasks WHERE id = $1", id)
 			if err != nil {
 				w.WriteHeader(http.StatusNotFound)
 				return
 			}
 
-			json.NewEncoder(w).Encode("User deleted")
+			json.NewEncoder(w).Encode("Task deleted")
 		}
+	}
+}
+
+func updateTask(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var t Task
+		json.NewDecoder(r.Body).Decode(&t)
+
+		vars := mux.Vars(r)
+		id := vars["id"]
+
+		_, err := db.Exec("UPDATE tasks SET name = $1, description = $2, status = $3, priority = $4, dueDate = $5 WHERE id = $6", t.Name, t.Description, t.Status, t.Priority, t.DueDate, id)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var updatedTask Task
+		err = db.QueryRow("SELECT id, name, description, status, priority, dueDate FROM tasks WHERE id = $1", id).Scan(&updatedTask.Id, &updatedTask.Name, &updatedTask.Description, &updatedTask.Status, &updatedTask.Priority, &updatedTask.DueDate)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		json.NewEncoder(w).Encode(updatedTask)
 	}
 }
