@@ -23,6 +23,10 @@ import TaskStatus from "@/types/taskStatus";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import PriorityBadgeForm from "@/components/priority-badge-form";
+import StatusBadge from "@/components/status-badge";
+import "dayjs/locale/pt-br";
+import dateToISOLikeButLocal from "@/lib/dateToISOLikeButLocal";
 
 const TaskCreatePage = () => {
   const router = useRouter();
@@ -52,7 +56,7 @@ const TaskCreatePage = () => {
     try {
       await axios.post("http://localhost:8000/api/go/tasks", {
         ...values,
-        dueDate: values.dueDate.$d.toISOString(),
+        dueDate: dateToISOLikeButLocal(values.dueDate.$d),
       });
       router.push(`/tasks`);
       toast.success("Task created");
@@ -65,7 +69,7 @@ const TaskCreatePage = () => {
   return (
     <div>
       <ButtonBackToTasks />
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={"pt-br"}>
         <form
           className="flex flex-col bg-white p-5 border shadow"
           onSubmit={handleSubmit(onSubmit)}
@@ -104,7 +108,7 @@ const TaskCreatePage = () => {
               >
                 {Object.values(TaskStatus).map((status) => (
                   <MenuItem key={status} value={status}>
-                    {status}
+                    <StatusBadge status={status} />
                   </MenuItem>
                 ))}
               </Select>
@@ -120,7 +124,7 @@ const TaskCreatePage = () => {
               >
                 {Object.values(TaskPriority).map((priority) => (
                   <MenuItem key={priority} value={priority}>
-                    {priority}
+                    <PriorityBadgeForm priority={priority} />
                   </MenuItem>
                 ))}
               </Select>
