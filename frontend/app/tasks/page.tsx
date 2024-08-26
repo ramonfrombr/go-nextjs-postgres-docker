@@ -61,10 +61,6 @@ const TasksPage = () => {
     (task) => task.priority == TaskPriority.HIGH
   );
 
-  console.log(newTasks);
-  console.log(inProgressTasks);
-  console.log(completedTasks);
-
   return (
     <div>
       <div className="mb-5">

@@ -54,10 +54,6 @@ const TaskCreatePage = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      console.log({
-        ...values,
-        dueDate: dateToISOLikeButLocal(values.dueDate.$d),
-      });
       await axios.post("http://localhost:8000/api/go/tasks", {
         ...values,
         dueDate: dateToISOLikeButLocal(values.dueDate.$d),

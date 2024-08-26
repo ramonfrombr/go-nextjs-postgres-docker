@@ -1,9 +1,5 @@
-"use client";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <main>
-      <h1>Go + NextJS + PostgreSQL + Docker</h1>
-    </main>
-  );
+  redirect("/tasks");
 }
