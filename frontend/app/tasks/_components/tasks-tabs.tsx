@@ -10,6 +10,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import PanelTasksAll from "./panel-tasks-all";
+import PanelTasksUpcoming from "./panel-tasks-upcoming";
 
 function a11yProps(index: number) {
   return {
@@ -24,9 +25,10 @@ interface TasksTabsProps {
     inProgressTasks: ITask[];
     completedTasks: ITask[];
   };
+  upcomingTasks: ITask[];
 }
 
-const TasksTabs = ({ tasks }: TasksTabsProps) => {
+const TasksTabs = ({ tasks, upcomingTasks }: TasksTabsProps) => {
   const [value, setValue] = useState(0);
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -43,10 +45,12 @@ const TasksTabs = ({ tasks }: TasksTabsProps) => {
           allowScrollButtonsMobile
         >
           <Tab label="All Tasks" {...a11yProps(0)} />
+          <Tab label="Upcoming Tasks" {...a11yProps(1)} />
         </Tabs>
       </Box>
 
       <PanelTasksAll value={value} index={0} tasks={tasks} />
+      <PanelTasksUpcoming value={value} index={1} tasks={upcomingTasks} />
     </Box>
   );
 };
