@@ -49,6 +49,10 @@ const TasksPage = () => {
       (task.status == TaskStatus.NEW || task.status == TaskStatus.IN_PROGRESS)
   );
 
+  const overdueTasks = tasks.filter(
+    (task) => new Date(task.dueDate) <= yesterday
+  );
+
   console.log(newTasks);
   console.log(inProgressTasks);
   console.log(completedTasks);
@@ -68,6 +72,7 @@ const TasksPage = () => {
           completedTasks: completedTasks,
         }}
         upcomingTasks={upcomingTasks}
+        overdueTasks={overdueTasks}
       />
     </div>
   );

@@ -11,6 +11,7 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import PanelTasksAll from "./panel-tasks-all";
 import PanelTasksUpcoming from "./panel-tasks-upcoming";
+import PanelTasksOverdue from "./panel-tasks-overdue";
 
 function a11yProps(index: number) {
   return {
@@ -26,9 +27,10 @@ interface TasksTabsProps {
     completedTasks: ITask[];
   };
   upcomingTasks: ITask[];
+  overdueTasks: ITask[];
 }
 
-const TasksTabs = ({ tasks, upcomingTasks }: TasksTabsProps) => {
+const TasksTabs = ({ tasks, upcomingTasks, overdueTasks }: TasksTabsProps) => {
   const [value, setValue] = useState(0);
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
@@ -46,11 +48,13 @@ const TasksTabs = ({ tasks, upcomingTasks }: TasksTabsProps) => {
         >
           <Tab label="All Tasks" {...a11yProps(0)} />
           <Tab label="Upcoming Tasks" {...a11yProps(1)} />
+          <Tab label="Overdue Tasks" {...a11yProps(2)} />
         </Tabs>
       </Box>
 
       <PanelTasksAll value={value} index={0} tasks={tasks} />
       <PanelTasksUpcoming value={value} index={1} tasks={upcomingTasks} />
+      <PanelTasksOverdue value={value} index={2} tasks={overdueTasks} />
     </Box>
   );
 };
