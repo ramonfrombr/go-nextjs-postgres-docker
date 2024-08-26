@@ -20,8 +20,13 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import TaskPriority from "@/types/taskPriority";
 import TaskStatus from "@/types/taskStatus";
+import axios from "axios";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 const TaskCreatePage = () => {
+  const router = useRouter();
+
   const [open, setOpen] = useState(false);
   type FormData = z.infer<typeof formSchema>;
 
@@ -44,7 +49,17 @@ const TaskCreatePage = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    try {
+      await axios.post("http://localhost:8000/api/go/tasks", {
+        ...values,
+        dueDate: values.dueDate.$d.toISOString(),
+      });
+      router.push(`/tasks`);
+      toast.success("Task created");
+      router.refresh();
+    } catch {
+      toast.error("Something went wrong");
+    }
   };
 
   return (
