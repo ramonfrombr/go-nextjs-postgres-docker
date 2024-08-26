@@ -6,6 +6,7 @@ import { Button } from "@mui/material";
 import Link from "next/link";
 import React, { useState } from "react";
 import { useEffect } from "react";
+import TasksTabs from "./_components/tasks-tabs";
 
 const TasksPage = () => {
   const [tasks, setTasks] = useState<ITask[]>([]);
@@ -44,6 +45,14 @@ const TasksPage = () => {
           <Button variant="contained">Create</Button>
         </Link>
       </div>
+
+      <TasksTabs
+        tasks={{
+          newTasks: newTasks,
+          inProgressTasks: inProgressTasks,
+          completedTasks: completedTasks,
+        }}
+      />
     </div>
   );
 };
