@@ -1,4 +1,24 @@
 services:
+  nextapp:
+    container_name: nextapp
+    image: nextapp:1.0.0
+    build:
+      context: ./frontend
+      dockerfile: next.dockerfile
+      target: dev
+    restart: always
+    command: yarn dev
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - goapp
   goapp:
     container_name: goapp
     image: goapp:1.0.0
@@ -11,6 +31,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+    restart: always
   db:
     container_name: db
     image: postgres:13
