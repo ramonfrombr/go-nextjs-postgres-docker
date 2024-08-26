@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { useEffect } from "react";
 import TasksTabs from "./_components/tasks-tabs";
 import { oneWeekFromNow, yesterday } from "@/lib/dates";
+import TaskPriority from "@/types/taskPriority";
 
 const TasksPage = () => {
   const [tasks, setTasks] = useState<ITask[]>([]);
@@ -41,16 +42,23 @@ const TasksPage = () => {
   const completedTasks = tasks.filter(
     (task) => task.status === TaskStatus.COMPLETED
   );
-
   const upcomingTasks = tasks.filter(
     (task) =>
       new Date(task.dueDate) > yesterday &&
       new Date(task.dueDate) <= oneWeekFromNow &&
       (task.status == TaskStatus.NEW || task.status == TaskStatus.IN_PROGRESS)
   );
-
   const overdueTasks = tasks.filter(
     (task) => new Date(task.dueDate) <= yesterday
+  );
+  const lowPriorityTasks = tasks.filter(
+    (task) => task.priority == TaskPriority.LOW
+  );
+  const mediumPriorityTasks = tasks.filter(
+    (task) => task.priority == TaskPriority.MEDIUM
+  );
+  const highPriorityTasks = tasks.filter(
+    (task) => task.priority == TaskPriority.HIGH
   );
 
   console.log(newTasks);
@@ -70,9 +78,12 @@ const TasksPage = () => {
           newTasks: newTasks,
           inProgressTasks: inProgressTasks,
           completedTasks: completedTasks,
+          upcomingTasks: upcomingTasks,
+          overdueTasks: overdueTasks,
+          lowPriorityTasks: lowPriorityTasks,
+          mediumPriorityTasks: mediumPriorityTasks,
+          highPriorityTasks: highPriorityTasks,
         }}
-        upcomingTasks={upcomingTasks}
-        overdueTasks={overdueTasks}
       />
     </div>
   );
